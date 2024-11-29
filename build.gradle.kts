@@ -1,11 +1,5 @@
-import org.gradle.accessors.dm.LibrariesForLibs
-
 plugins {
-    // Подключение плагинов через Version Catalog
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.composeMultiplatform)
-    alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.composeMultiplatform) apply false
+    alias(libs.plugins.composeCompiler) apply false
+    alias(libs.plugins.kotlinMultiplatform) apply false
 }
-
-// Создаём объект libs для доступа к Version Catalog
-val libs = the<LibrariesForLibs>()
