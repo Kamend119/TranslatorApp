@@ -4,6 +4,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,11 +35,15 @@ fun Header(onHistoryClick: () -> Unit, onAboutClick: () -> Unit, onAccountClick:
             Text("Переводчик", style = MaterialTheme.typography.h4)
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(
-                    onClick = onAccountClick,
-                    colors = ButtonDefaults.buttonColors(backgroundColor = AccentColor)
+                IconButton(
+                    onClick = onAccountClick
                 ) {
-                    Text("Аккаунт", color = Color.White)
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = "Аккаунт",
+                        tint = AccentColor,
+                        modifier = Modifier.size(50.dp)
+                    )
                 }
             }
         }
@@ -201,36 +207,36 @@ fun App() {
         Column(
             modifier = Modifier
                 .fillMaxHeight()
-                .width(200.dp)
+                .width(150.dp)
                 .background(Color(237,247,244))
-                .padding(16.dp)
         ) {
             TextButton(
                 onClick = { selectedPage = "Home" },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.textButtonColors(contentColor = if (selectedPage == "Home") AccentColor else defaultItemColor)
+                modifier = Modifier.fillMaxWidth().background(if (selectedPage == "Home") AccentColor else Color.Transparent)
+                    .padding(16.dp),
+                colors = ButtonDefaults.textButtonColors(contentColor = if (selectedPage == "Home") Color.White else Color.Black)
             ) {
                 Text("Главная")
             }
             TextButton(
                 onClick = { selectedPage = "History" },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.textButtonColors(contentColor = if (selectedPage == "History") AccentColor else defaultItemColor)
+                modifier = Modifier.fillMaxWidth().background(if (selectedPage == "History") AccentColor else Color.Transparent)
+                    .padding(16.dp),
+                colors = ButtonDefaults.textButtonColors(contentColor = if (selectedPage == "History") Color.White else Color.Black)
             ) {
                 Text("История")
             }
             Spacer(modifier = Modifier.weight(1f))
             TextButton(
                 onClick = { isAboutVisible = true },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.textButtonColors(contentColor = if (selectedPage == "About") AccentColor else defaultItemColor)
+                modifier = Modifier.fillMaxWidth().background(if (selectedPage == "About") AccentColor else Color.Transparent)
+                    .padding(16.dp),
+                colors = ButtonDefaults.textButtonColors(contentColor = if (selectedPage == "About") Color.White else Color.Black)
             ) {
                 Text("О нас")
             }
         }
 
-
-        // Контент справа от бокового меню
         Column(
             modifier = Modifier
                 .fillMaxSize()
