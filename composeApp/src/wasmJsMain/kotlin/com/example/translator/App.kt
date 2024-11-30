@@ -1,7 +1,4 @@
-@file:Suppress("UNUSED_EXPRESSION")
-
 package com.example.translator
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -17,20 +14,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 
-// Цвета
-val AccentColor = Color(62,180,137) // Акцентный цвет
-var AdditionalAccent = Color(237,247,244) // Дополнительный акцент
-
-// Максимальная длина для ввода в поля перевода
-var MaxLengthText = 1000
-
-// Максимальная длина для логина и паролей
-var MaxLengthAut = 100
+val AccentColor = Color(62,180,137)
+var AdditionalAccent = Color(237,247,244)
 
 data class TranslationHistoryItem(
     val name: String,
     val faculty: String,
-    val translation: String
+    val translation: String,
+    val direction: String
 )
 
 @Composable
@@ -43,7 +34,7 @@ fun App() {
             onRegisterClick = { currentPage = "Register" }
         )
         "Register" -> RegisterPage(
-            onBackToLoginClick = { currentPage = "Translator" }
+            onBackToLoginClick = { currentPage = "Login" }
         )
         "Translator" -> TranslatorPage(onLogoutClick = { currentPage = "Login" } )
     }
@@ -66,7 +57,7 @@ fun LoginPage(onLoginClick: () -> Unit, onRegisterClick: () -> Unit) {
 
             OutlinedTextField(
                 value = login,
-                onValueChange = { newLogin -> if (newLogin.length <= MaxLengthAut) login = newLogin },
+                onValueChange = { newLogin -> if (newLogin.length <= 100) login = newLogin },
                 maxLines = 1,
                 label = { Text("Логин") }
             )
@@ -74,7 +65,7 @@ fun LoginPage(onLoginClick: () -> Unit, onRegisterClick: () -> Unit) {
 
             OutlinedTextField(
                 value = password,
-                onValueChange = { newPassword -> if (newPassword.length <= MaxLengthAut) password = newPassword },
+                onValueChange = { newPassword -> if (newPassword.length <= 100) password = newPassword },
                 maxLines = 1,
                 label = { Text("Пароль") },
                 visualTransformation = PasswordVisualTransformation(),
@@ -87,13 +78,15 @@ fun LoginPage(onLoginClick: () -> Unit, onRegisterClick: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                TextButton(onClick = onRegisterClick) {
+                TextButton(onClick = onRegisterClick, Modifier.padding(8.dp)) {
                     Text("Регистрация", color = MaterialTheme.colors.primary)
                 }
-                Spacer(modifier = Modifier.width(16.dp))
 
-                Button(onClick = onLoginClick) {
-                    Text("Войти")
+                Button(
+                    onClick = onLoginClick, Modifier.padding(8.dp),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = AccentColor)
+                ) {
+                    Text("Войти", color = Color.White)
                 }
             }
         }
@@ -119,7 +112,7 @@ fun RegisterPage(onBackToLoginClick: () -> Unit) {
 
             OutlinedTextField(
                 value = email,
-                onValueChange = { newEmail -> if (newEmail.length <= MaxLengthAut) email = newEmail },
+                onValueChange = { newEmail -> if (newEmail.length <= 100) email = newEmail },
                 maxLines = 1,
                 label = { Text("Почта") }
             )
@@ -127,7 +120,7 @@ fun RegisterPage(onBackToLoginClick: () -> Unit) {
 
             OutlinedTextField(
                 value = username,
-                onValueChange = { newUsername -> if (newUsername.length <= MaxLengthAut) username = newUsername },
+                onValueChange = { newUsername -> if (newUsername.length <= 100) username = newUsername },
                 maxLines = 1,
                 label = { Text("Логин") }
             )
@@ -135,7 +128,7 @@ fun RegisterPage(onBackToLoginClick: () -> Unit) {
 
             OutlinedTextField(
                 value = password,
-                onValueChange = { newPassword -> if (newPassword.length <= MaxLengthAut) password = newPassword },
+                onValueChange = { newPassword -> if (newPassword.length <= 100) password = newPassword },
                 maxLines = 1,
                 label = { Text("Пароль") },
                 visualTransformation = PasswordVisualTransformation(),
@@ -145,7 +138,7 @@ fun RegisterPage(onBackToLoginClick: () -> Unit) {
 
             OutlinedTextField(
                 value = confirmPassword,
-                onValueChange = { newConfirmPassword -> if (newConfirmPassword.length <= MaxLengthAut) confirmPassword = newConfirmPassword },
+                onValueChange = { newConfirmPassword -> if (newConfirmPassword.length <= 100) confirmPassword = newConfirmPassword },
                 maxLines = 1,
                 label = { Text("Повторите пароль") },
                 visualTransformation = PasswordVisualTransformation(),
@@ -153,8 +146,12 @@ fun RegisterPage(onBackToLoginClick: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(onClick = onBackToLoginClick) {
-                Text("Зарегистрироваться")
+            Button(
+                onClick = onBackToLoginClick,
+                modifier = Modifier.padding(bottom = 16.dp),
+                colors = ButtonDefaults.buttonColors(backgroundColor = AccentColor)
+            ) {
+                Text("Зарегистрироваться", color = Color.White)
             }
         }
     }
@@ -167,15 +164,15 @@ fun TranslatorPage(onLogoutClick: () -> Unit) {
     var translationResult by remember { mutableStateOf("") }
     var initialName by remember { mutableStateOf("") }
     var initialFaculty by remember { mutableStateOf("") }
+    var initialDirection by remember { mutableStateOf("") }
 
     var selectedPage by remember { mutableStateOf("Home") }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Шапка на всю ширину
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(237,247,244))
+                .background(AdditionalAccent)
                 .padding(16.dp)
         )  {
             Spacer(modifier = Modifier.width(200.dp))
@@ -184,12 +181,11 @@ fun TranslatorPage(onLogoutClick: () -> Unit) {
         }
 
         Row(modifier = Modifier.fillMaxSize()) {
-            // Боковое меню начинается после шапки
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
                     .width(200.dp)
-                    .background(Color(237,247,244))
+                    .background(AdditionalAccent)
             ) {
                 TextButton(
                     onClick = { selectedPage = "Home" },
@@ -217,7 +213,6 @@ fun TranslatorPage(onLogoutClick: () -> Unit) {
                 }
             }
 
-            // Контент, который будет переключаться в зависимости от выбранной страницы
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -225,20 +220,22 @@ fun TranslatorPage(onLogoutClick: () -> Unit) {
             ) {
                 when (selectedPage) {
                     "Home" -> TranslationForm(
-                        onTranslate = { name, faculty ->
-                            val result = "Переведенное значение: $name - $faculty"
+                        onTranslate = { name, faculty, direction ->
+                            val result = "Переведенное значение: $name - $faculty - $direction"
                             translationResult = result
-                            history = history + TranslationHistoryItem(name, faculty, result)
+                            history = history + TranslationHistoryItem(name, faculty, result, direction)
                         },
                         result = translationResult,
                         initialName = initialName,
-                        initialFaculty = initialFaculty
+                        initialFaculty = initialFaculty,
+                        initialDirection = initialDirection
                     )
                     "History" -> HistoryPage(
                         history = history,
                         onItemClick = { item ->
                             initialName = item.name
                             initialFaculty = item.faculty
+                            initialDirection = item.direction
                             translationResult = item.translation
                             selectedPage = "Home"
                         }
@@ -317,12 +314,8 @@ fun AboutUsDialog(isVisible: Boolean, onDismiss: () -> Unit) {
                     Text("О нас", style = MaterialTheme.typography.h5)
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    Text("Команда переводчика:", style = MaterialTheme.typography.body1)
-                    Text("Бобровников Никита", style = MaterialTheme.typography.body1)
-                    Text("Евстигнеев Александр", style = MaterialTheme.typography.body1)
-                    Text("Зайниев Владислав", style = MaterialTheme.typography.body1)
-                    Text("Ишкова Анна", style = MaterialTheme.typography.body1)
-                    Text("Микрюкова Анастасия", style = MaterialTheme.typography.body1)
+                    Text("Команда переводчика:\nБобровников Никита\nЕвстигнеев Александр\nЗайниев Владислав" +
+                            "\nИшкова Анна\nМикрюкова Анастасия", style = MaterialTheme.typography.body1)
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text("Контактная информация: kryjovnik.info@mail.ru", style = MaterialTheme.typography.body1)
@@ -342,13 +335,15 @@ fun AboutUsDialog(isVisible: Boolean, onDismiss: () -> Unit) {
 
 @Composable
 fun TranslationForm(
-    onTranslate: (String, String) -> Unit,
+    onTranslate: (String, String, String) -> Unit,
     result: String,
     initialName: String = "",
-    initialFaculty: String = ""
+    initialFaculty: String = "",
+    initialDirection: String = ""
 ) {
     var name by remember { mutableStateOf(initialName) }
     var faculty by remember { mutableStateOf(initialFaculty) }
+    var direction by remember { mutableStateOf(initialDirection) }
 
     MaterialTheme {
         Column(
@@ -358,7 +353,7 @@ fun TranslationForm(
         ) {
             Row(
                 modifier = Modifier
-                    .fillMaxWidth(2f)
+                    .fillMaxWidth()
                     .padding(8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.Top
@@ -378,10 +373,18 @@ fun TranslationForm(
                     label = { Text("Факультет") },
                     modifier = Modifier.weight(1f)
                 )
+
+                OutlinedTextField(
+                    value = direction,
+                    onValueChange = { newDirection -> if (newDirection.length <= 1000) direction = newDirection },
+                    maxLines = 7,
+                    label = { Text("Направление") },
+                    modifier = Modifier.weight(1f)
+                )
             }
 
             Button(
-                onClick = { onTranslate(name, faculty) },
+                onClick = { onTranslate(name, faculty, direction) },
                 modifier = Modifier
                     .align(Alignment.End)
                     .padding(top = 16.dp),
@@ -418,12 +421,15 @@ fun HistoryPage(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                     colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent)
                 ) {
+                    // при длинных, он криво рисует
                     Column(Modifier.padding(8.dp)) {
+                        Text("Перевод: ${item.translation}", style = MaterialTheme.typography.body1)
+
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Название: ${item.name}", style = MaterialTheme.typography.body1)
+                            Text("Название: ${item.name}", style = MaterialTheme.typography.body2)
                             Text("Факультет: ${item.faculty}", style = MaterialTheme.typography.body2)
+                            Text("Направление: ${item.direction}", style = MaterialTheme.typography.body2)
                         }
-                        Text("Перевод: ${item.translation}", style = MaterialTheme.typography.body2)
                     }
                 }
             }
