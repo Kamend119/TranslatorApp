@@ -1,37 +1,51 @@
 package com.example.translator
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import org.jetbrains.compose.resources.painterResource
 
-import translatorapp.composeapp.generated.resources.Res
-import translatorapp.composeapp.generated.resources.compose_multiplatform
+val AccentColor = Color(62,182,129)
+
+data class TranslationHistoryItem(
+    val name: String,
+    val faculty: String,
+    val translation: String
+)
 
 @Composable
 fun Header(onHistoryClick: () -> Unit, onAboutClick: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text("Переводчик", style = MaterialTheme.typography.h4)
+    MaterialTheme {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Переводчик", style = MaterialTheme.typography.h4)
 
-        Row {
-            // История
-            Button(onClick = onHistoryClick) {
-                Text("История")
-            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(
+                    onClick = onHistoryClick,
+                    colors = ButtonDefaults.buttonColors(backgroundColor = AccentColor)
+                ) {
+                    Text("История", color = Color.White)
+                }
 
-            // О нас
-            Button(onClick = onAboutClick) {
-                Text("О нас")
+                Button(
+                    onClick = onAboutClick,
+                    colors = ButtonDefaults.buttonColors(backgroundColor = AccentColor)
+                ) {
+                    Text("О нас", color = Color.White)
+                }
+
             }
         }
     }
@@ -52,8 +66,11 @@ fun AboutUsDialog(isVisible: Boolean, onDismiss: () -> Unit) {
                     Text("Команда переводчика:", style = MaterialTheme.typography.body1)
                     Text("Контактная информация: team@example.com", style = MaterialTheme.typography.body1)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Button(onClick = onDismiss) {
-                        Text("Закрыть")
+                    Button(
+                        onClick = onDismiss,
+                        colors = ButtonDefaults.buttonColors(backgroundColor = AccentColor)
+                    ) {
+                        Text("Закрыть", color = Color.White)
                     }
                 }
             }
@@ -62,84 +79,147 @@ fun AboutUsDialog(isVisible: Boolean, onDismiss: () -> Unit) {
 }
 
 @Composable
-fun TranslationForm(onTranslate: (String, String) -> Unit) {
-    var name by remember { mutableStateOf("") }
-    var faculty by remember { mutableStateOf("") }
-    var result by remember { mutableStateOf("") }
+fun TranslationForm(
+    onTranslate: (String, String) -> Unit,
+    result: String,
+    initialName: String = "",
+    initialFaculty: String = ""
+) {
+    var name by remember { mutableStateOf(initialName) }
+    var faculty by remember { mutableStateOf(initialFaculty) }
 
-    Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-        TextField(
-            value = name,
-            onValueChange = { name = it },
-            label = { Text("Название") },
-            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
-        )
+    MaterialTheme {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Название") }
+                )
 
-        TextField(
-            value = faculty,
-            onValueChange = { faculty = it },
-            label = { Text("Факультет") },
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
-        )
+                OutlinedTextField(
+                    value = faculty,
+                    onValueChange = { faculty = it },
+                    label = { Text("Факультет")}
+                )
+            }
 
-        Button(onClick = {
-            // Здесь будет логика перевода
-            result = "Переведенное значение: ${name} - ${faculty}"
-            onTranslate(name, faculty)  // Вызов переводной функции
-        }) {
-            Text("Перевести")
+            Button(
+                onClick = { onTranslate(name, faculty) },
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(top = 16.dp),
+                colors = ButtonDefaults.buttonColors(backgroundColor = AccentColor)
+            ) {
+                Text("Перевести", color = Color.White)
+            }
+
+            Text(
+                text = "Результат перевода: $result",
+                style = MaterialTheme.typography.body1,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .padding(top = 16.dp)
+            )
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text("Результат перевода: $result")
     }
 }
+
+
 
 @Composable
-fun HistoryPage(history: List<String>) {
-    Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-        Text("История переводов:", style = MaterialTheme.typography.h5)
-        history.forEach { translation ->
-            Text(translation, style = MaterialTheme.typography.body1)
+fun HistoryPage(
+    history: List<TranslationHistoryItem>,
+    onItemClick: (TranslationHistoryItem) -> Unit,
+    onBackClick: () -> Unit // Новый параметр для обработки нажатия на кнопку "Назад"
+) {
+    MaterialTheme {
+        Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+            // Кнопка "Назад"
+            Button(
+                onClick = onBackClick,
+                modifier = Modifier.padding(bottom = 16.dp),
+                colors = ButtonDefaults.buttonColors(backgroundColor = AccentColor)
+            ) {
+                Text("Назад", color = Color.White)
+            }
+
+            Text("История переводов:", style = MaterialTheme.typography.h5)
+            Spacer(modifier = Modifier.height(8.dp))
+
+            history.forEach { item ->
+                Button(
+                    onClick = { onItemClick(item) },
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = AccentColor)
+                ) {
+                    Column(Modifier.padding(8.dp)) {
+                        Text("Название: ${item.name}", style = MaterialTheme.typography.body1, color = Color.White)
+                        Text("Факультет: ${item.faculty}", style = MaterialTheme.typography.body2, color = Color.White)
+                        Text("Перевод: ${item.translation}", style = MaterialTheme.typography.body2, color = Color.White)
+                    }
+                }
+            }
         }
     }
 }
+
 
 @Composable
 fun App() {
     var isAboutVisible by remember { mutableStateOf(false) }
-    var history by remember { mutableStateOf(listOf<String>()) }
+    var isHistoryVisible by remember { mutableStateOf(false) }
+    var history by remember { mutableStateOf(listOf<TranslationHistoryItem>()) }
+    var translationResult by remember { mutableStateOf("") }
+    var initialName by remember { mutableStateOf("") }
+    var initialFaculty by remember { mutableStateOf("") }
 
-    var currentPage by remember { mutableStateOf("main") }
-    var name by remember { mutableStateOf("") }
-    var faculty by remember { mutableStateOf("") }
+    MaterialTheme {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Header(
+                onHistoryClick = { isHistoryVisible = true },
+                onAboutClick = { isAboutVisible = true }
+            )
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Шапка
-        Header(
-            onHistoryClick = { currentPage = "history" },
-            onAboutClick = { isAboutVisible = true }
-        )
-
-        // Отображение страницы
-        when (currentPage) {
-            "main" -> {
+            if (isHistoryVisible) {
+                HistoryPage(
+                    history = history,
+                    onItemClick = { item ->
+                        initialName = item.name
+                        initialFaculty = item.faculty
+                        translationResult = item.translation
+                        isHistoryVisible = false
+                    },
+                    onBackClick = { isHistoryVisible = false } // Возвращение на главную страницу
+                )
+            } else if (isAboutVisible) {
+                AboutUsDialog(
+                    isVisible = isAboutVisible,
+                    onDismiss = { isAboutVisible = false }
+                )
+            } else {
                 TranslationForm(
-                    onTranslate = { n, f ->
-                        name = n
-                        faculty = f
-                        // Добавляем перевод в историю
-                        history = history + "Перевод: $name - $faculty"
-                    }
+                    onTranslate = { name, faculty ->
+                        val result = "Переведенное значение: $name - $faculty"
+                        translationResult = result
+                        history = history + TranslationHistoryItem(name, faculty, result)
+                    },
+                    result = translationResult,
+                    initialName = initialName,
+                    initialFaculty = initialFaculty
                 )
             }
-            "history" -> {
-                HistoryPage(history)
-            }
         }
-
-        // Диалог "О нас"
-        AboutUsDialog(isVisible = isAboutVisible, onDismiss = { isAboutVisible = false })
     }
 }
+
