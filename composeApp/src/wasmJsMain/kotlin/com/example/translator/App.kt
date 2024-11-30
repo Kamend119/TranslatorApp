@@ -1,15 +1,13 @@
 package com.example.translator
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.Key.Companion.R
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import org.jetbrains.compose.resources.painterResource
@@ -23,7 +21,7 @@ data class TranslationHistoryItem(
 )
 
 @Composable
-fun Header(onHistoryClick: () -> Unit, onAboutClick: () -> Unit) {
+fun Header(onHistoryClick: () -> Unit, onAboutClick: () -> Unit, onAccountClick: () -> Unit) {
     MaterialTheme {
         Row(
             modifier = Modifier
@@ -36,21 +34,27 @@ fun Header(onHistoryClick: () -> Unit, onAboutClick: () -> Unit) {
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(
-                    onClick = onHistoryClick,
+                    onClick = onAccountClick,
                     colors = ButtonDefaults.buttonColors(backgroundColor = AccentColor)
                 ) {
-                    Text("История", color = Color.White)
+                    Text("Аккаунт", color = Color.White)
                 }
-
-                Button(
-                    onClick = onAboutClick,
-                    colors = ButtonDefaults.buttonColors(backgroundColor = AccentColor)
-                ) {
-                    Text("О нас", color = Color.White)
-                }
-
             }
         }
+    }
+}
+
+@Composable
+fun AccountPage(onBackClick: () -> Unit) {
+    // Пока оставим страницу аккаунта пустой
+    Text("Страница аккаунта", modifier = Modifier.fillMaxSize(), style = MaterialTheme.typography.h5)
+
+    Button(
+        onClick = onBackClick,
+        modifier = Modifier.padding(bottom = 16.dp),
+        colors = ButtonDefaults.buttonColors(backgroundColor = AccentColor)
+    ) {
+        Text("Назад", color = Color.White)
     }
 }
 
@@ -75,7 +79,7 @@ fun AboutUsDialog(isVisible: Boolean, onDismiss: () -> Unit) {
                     Text("Микрюкова Анастасия", style = MaterialTheme.typography.body1)
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    Text("Контактная информация: a.mikryukova119@mail.ru", style = MaterialTheme.typography.body1)
+                    Text("Контактная информация: kryjovnik.info@mail.ru", style = MaterialTheme.typography.body1)
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Button(
@@ -89,7 +93,6 @@ fun AboutUsDialog(isVisible: Boolean, onDismiss: () -> Unit) {
         }
     }
 }
-
 
 @Composable
 fun TranslationForm(
@@ -114,31 +117,20 @@ fun TranslationForm(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.Top
             ) {
-                // Первое текстовое поле (Название)
                 OutlinedTextField(
                     value = name,
-                    onValueChange = { newName ->
-                        if (newName.length <= 1000) {
-                            name = newName
-                        }
-                    },
+                    onValueChange = { newName -> if (newName.length <= 1000) name = newName },
                     maxLines = 7,
                     label = { Text("Название") },
-                    modifier = Modifier
-                        .weight(1f)
+                    modifier = Modifier.weight(1f)
                 )
 
                 OutlinedTextField(
                     value = faculty,
-                    onValueChange = { newFaculty ->
-                        if (newFaculty.length <= 1000) {
-                            faculty = newFaculty
-                        }
-                    },
+                    onValueChange = { newFaculty -> if (newFaculty.length <= 1000) faculty = newFaculty },
                     maxLines = 7,
                     label = { Text("Факультет") },
-                    modifier = Modifier
-                        .weight(1f)
+                    modifier = Modifier.weight(1f)
                 )
             }
 
@@ -164,24 +156,13 @@ fun TranslationForm(
     }
 }
 
-
 @Composable
 fun HistoryPage(
     history: List<TranslationHistoryItem>,
-    onItemClick: (TranslationHistoryItem) -> Unit,
-    onBackClick: () -> Unit // Новый параметр для обработки нажатия на кнопку "Назад"
+    onItemClick: (TranslationHistoryItem) -> Unit
 ) {
     MaterialTheme {
         Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-            // Кнопка "Назад"
-            Button(
-                onClick = onBackClick,
-                modifier = Modifier.padding(bottom = 16.dp),
-                colors = ButtonDefaults.buttonColors(backgroundColor = AccentColor)
-            ) {
-                Text("Назад", color = Color.White)
-            }
-
             Text("История переводов:", style = MaterialTheme.typography.h5)
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -189,7 +170,7 @@ fun HistoryPage(
                 Button(
                     onClick = { onItemClick(item) },
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent) // Прозрачный фон
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent)
                 ) {
                     Column(Modifier.padding(8.dp)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -199,47 +180,71 @@ fun HistoryPage(
                         Text("Перевод: ${item.translation}", style = MaterialTheme.typography.body2)
                     }
                 }
-
             }
         }
     }
 }
 
-
 @Composable
 fun App() {
     var isAboutVisible by remember { mutableStateOf(false) }
-    var isHistoryVisible by remember { mutableStateOf(false) }
     var history by remember { mutableStateOf(listOf<TranslationHistoryItem>()) }
     var translationResult by remember { mutableStateOf("") }
     var initialName by remember { mutableStateOf("") }
     var initialFaculty by remember { mutableStateOf("") }
 
-    MaterialTheme {
-        Column(modifier = Modifier.fillMaxSize()) {
+    var selectedPage by remember { mutableStateOf("Home") }
+
+    Row(modifier = Modifier.fillMaxSize()) {
+        val defaultItemColor = Color.Gray
+
+        Column(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(200.dp)
+                .background(Color(237,247,244))
+                .padding(16.dp)
+        ) {
+            TextButton(
+                onClick = { selectedPage = "Home" },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.textButtonColors(contentColor = if (selectedPage == "Home") AccentColor else defaultItemColor)
+            ) {
+                Text("Главная")
+            }
+            TextButton(
+                onClick = { selectedPage = "History" },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.textButtonColors(contentColor = if (selectedPage == "History") AccentColor else defaultItemColor)
+            ) {
+                Text("История")
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            TextButton(
+                onClick = { isAboutVisible = true },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.textButtonColors(contentColor = if (selectedPage == "About") AccentColor else defaultItemColor)
+            ) {
+                Text("О нас")
+            }
+        }
+
+
+        // Контент справа от бокового меню
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            // Добавление шапки, чтобы она была на всех страницах
             Header(
-                onHistoryClick = { isHistoryVisible = true },
-                onAboutClick = { isAboutVisible = true }
+                onHistoryClick = { selectedPage = "History" },
+                onAboutClick = { isAboutVisible = true },
+                onAccountClick = { selectedPage = "Account" }
             )
 
-            if (isHistoryVisible) {
-                HistoryPage(
-                    history = history,
-                    onItemClick = { item ->
-                        initialName = item.name
-                        initialFaculty = item.faculty
-                        translationResult = item.translation
-                        isHistoryVisible = false
-                    },
-                    onBackClick = { isHistoryVisible = false } // Возвращение на главную страницу
-                )
-            } else if (isAboutVisible) {
-                AboutUsDialog(
-                    isVisible = isAboutVisible,
-                    onDismiss = { isAboutVisible = false }
-                )
-            } else {
-                TranslationForm(
+            when (selectedPage) {
+                "Home" -> TranslationForm(
                     onTranslate = { name, faculty ->
                         val result = "Переведенное значение: $name - $faculty"
                         translationResult = result
@@ -249,8 +254,22 @@ fun App() {
                     initialName = initialName,
                     initialFaculty = initialFaculty
                 )
+                "History" -> HistoryPage(
+                    history = history,
+                    onItemClick = { item ->
+                        initialName = item.name
+                        initialFaculty = item.faculty
+                        translationResult = item.translation
+                        selectedPage = "Home"
+                    }
+                )
+                "Account" -> AccountPage(
+                    onBackClick = { selectedPage = "Home" }
+                )
             }
         }
-    }
-}
 
+    }
+
+    AboutUsDialog(isVisible = isAboutVisible, onDismiss = { isAboutVisible = false })
+}
