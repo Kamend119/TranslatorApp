@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import org.jetbrains.compose.resources.painterResource
 
 val AccentColor = Color(62,180,137)
 
@@ -201,81 +200,91 @@ fun App() {
 
     var selectedPage by remember { mutableStateOf("Home") }
 
-    Row(modifier = Modifier.fillMaxSize()) {
-        val defaultItemColor = Color.Gray
-
-        Column(
+    Column(modifier = Modifier.fillMaxSize()) {
+        // Шапка на всю ширину
+        Row(
             modifier = Modifier
-                .fillMaxHeight()
-                .width(150.dp)
+                .fillMaxWidth()
                 .background(Color(237,247,244))
-        ) {
-            TextButton(
-                onClick = { selectedPage = "Home" },
-                modifier = Modifier.fillMaxWidth().background(if (selectedPage == "Home") AccentColor else Color.Transparent)
-                    .padding(16.dp),
-                colors = ButtonDefaults.textButtonColors(contentColor = if (selectedPage == "Home") Color.White else Color.Black)
-            ) {
-                Text("Главная")
-            }
-            TextButton(
-                onClick = { selectedPage = "History" },
-                modifier = Modifier.fillMaxWidth().background(if (selectedPage == "History") AccentColor else Color.Transparent)
-                    .padding(16.dp),
-                colors = ButtonDefaults.textButtonColors(contentColor = if (selectedPage == "History") Color.White else Color.Black)
-            ) {
-                Text("История")
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            TextButton(
-                onClick = { isAboutVisible = true },
-                modifier = Modifier.fillMaxWidth().background(if (selectedPage == "About") AccentColor else Color.Transparent)
-                    .padding(16.dp),
-                colors = ButtonDefaults.textButtonColors(contentColor = if (selectedPage == "About") Color.White else Color.Black)
-            ) {
-                Text("О нас")
-            }
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
                 .padding(16.dp)
-        ) {
-            // Добавление шапки, чтобы она была на всех страницах
+        )  {
+            Spacer(modifier = Modifier.width(200.dp))
+
             Header(
                 onHistoryClick = { selectedPage = "History" },
                 onAboutClick = { isAboutVisible = true },
                 onAccountClick = { selectedPage = "Account" }
             )
-
-            when (selectedPage) {
-                "Home" -> TranslationForm(
-                    onTranslate = { name, faculty ->
-                        val result = "Переведенное значение: $name - $faculty"
-                        translationResult = result
-                        history = history + TranslationHistoryItem(name, faculty, result)
-                    },
-                    result = translationResult,
-                    initialName = initialName,
-                    initialFaculty = initialFaculty
-                )
-                "History" -> HistoryPage(
-                    history = history,
-                    onItemClick = { item ->
-                        initialName = item.name
-                        initialFaculty = item.faculty
-                        translationResult = item.translation
-                        selectedPage = "Home"
-                    }
-                )
-                "Account" -> AccountPage(
-                    onBackClick = { selectedPage = "Home" }
-                )
-            }
         }
 
+        Row(modifier = Modifier.fillMaxSize()) {
+            // Боковое меню начинается после шапки
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(200.dp)
+                    .background(Color(237,247,244))
+            ) {
+                TextButton(
+                    onClick = { selectedPage = "Home" },
+                    modifier = Modifier.fillMaxWidth().background(if (selectedPage == "Home") AccentColor else Color.Transparent)
+                        .padding(16.dp),
+                    colors = ButtonDefaults.textButtonColors(contentColor = if (selectedPage == "Home") Color.White else Color.Black)
+                ) {
+                    Text("Главная")
+                }
+                TextButton(
+                    onClick = { selectedPage = "History" },
+                    modifier = Modifier.fillMaxWidth().background(if (selectedPage == "History") AccentColor else Color.Transparent)
+                        .padding(16.dp),
+                    colors = ButtonDefaults.textButtonColors(contentColor = if (selectedPage == "History") Color.White else Color.Black)
+                ) {
+                    Text("История")
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                TextButton(
+                    onClick = { isAboutVisible = true },
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    colors = ButtonDefaults.textButtonColors(contentColor = if (selectedPage == "About") Color.White else Color.Black)
+                ) {
+                    Text("О нас")
+                }
+            }
+
+            // Контент, который будет переключаться в зависимости от выбранной страницы
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                when (selectedPage) {
+                    "Home" -> TranslationForm(
+                        onTranslate = { name, faculty ->
+                            val result = "Переведенное значение: $name - $faculty"
+                            translationResult = result
+                            history = history + TranslationHistoryItem(name, faculty, result)
+                        },
+                        result = translationResult,
+                        initialName = initialName,
+                        initialFaculty = initialFaculty
+                    )
+                    "History" -> HistoryPage(
+                        history = history,
+                        onItemClick = { item ->
+                            initialName = item.name
+                            initialFaculty = item.faculty
+                            translationResult = item.translation
+                            selectedPage = "Home"
+                        }
+                    )
+                    "Account" -> AccountPage(
+                        onBackClick = { selectedPage = "Home" }
+                    )
+                }
+            }
+        }
     }
 
     AboutUsDialog(isVisible = isAboutVisible, onDismiss = { isAboutVisible = false })
 }
+
