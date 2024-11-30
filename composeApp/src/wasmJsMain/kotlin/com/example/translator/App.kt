@@ -1,5 +1,6 @@
 package com.example.translator
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -8,8 +9,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key.Companion.R
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import org.jetbrains.compose.resources.painterResource
 
 val AccentColor = Color(62,182,129)
 
@@ -60,12 +63,21 @@ fun AboutUsDialog(isVisible: Boolean, onDismiss: () -> Unit) {
                 shape = MaterialTheme.shapes.medium,
                 elevation = 24.dp
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("О нас", style = MaterialTheme.typography.h5)
                     Spacer(modifier = Modifier.height(8.dp))
+
                     Text("Команда переводчика:", style = MaterialTheme.typography.body1)
-                    Text("Контактная информация: team@example.com", style = MaterialTheme.typography.body1)
+                    Text("Бобровников Никита", style = MaterialTheme.typography.body1)
+                    Text("Евстигнеев Александр", style = MaterialTheme.typography.body1)
+                    Text("Зайниев Владислав", style = MaterialTheme.typography.body1)
+                    Text("Ишкова Анна", style = MaterialTheme.typography.body1)
+                    Text("Микрюкова Анастасия", style = MaterialTheme.typography.body1)
                     Spacer(modifier = Modifier.height(8.dp))
+
+                    Text("Контактная информация: a.mikryukova119@mail.ru", style = MaterialTheme.typography.body1)
+                    Spacer(modifier = Modifier.height(8.dp))
+
                     Button(
                         onClick = onDismiss,
                         colors = ButtonDefaults.buttonColors(backgroundColor = AccentColor)
@@ -77,6 +89,7 @@ fun AboutUsDialog(isVisible: Boolean, onDismiss: () -> Unit) {
         }
     }
 }
+
 
 @Composable
 fun TranslationForm(
@@ -161,14 +174,17 @@ fun HistoryPage(
                 Button(
                     onClick = { onItemClick(item) },
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    colors = ButtonDefaults.buttonColors(backgroundColor = AccentColor)
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent) // Прозрачный фон
                 ) {
                     Column(Modifier.padding(8.dp)) {
-                        Text("Название: ${item.name}", style = MaterialTheme.typography.body1, color = Color.White)
-                        Text("Факультет: ${item.faculty}", style = MaterialTheme.typography.body2, color = Color.White)
-                        Text("Перевод: ${item.translation}", style = MaterialTheme.typography.body2, color = Color.White)
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("Название: ${item.name}", style = MaterialTheme.typography.body1)
+                            Text("Факультет: ${item.faculty}", style = MaterialTheme.typography.body2)
+                        }
+                        Text("Перевод: ${item.translation}", style = MaterialTheme.typography.body2)
                     }
                 }
+
             }
         }
     }
