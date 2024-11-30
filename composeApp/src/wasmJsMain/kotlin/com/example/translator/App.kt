@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import org.jetbrains.compose.resources.painterResource
 
-val AccentColor = Color(62,182,129)
+val AccentColor = Color(62,180,137)
 
 data class TranslationHistoryItem(
     val name: String,
@@ -109,20 +109,36 @@ fun TranslationForm(
         ) {
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxWidth(2f)
                     .padding(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.Top
             ) {
+                // Первое текстовое поле (Название)
                 OutlinedTextField(
                     value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Название") }
+                    onValueChange = { newName ->
+                        if (newName.length <= 1000) {
+                            name = newName
+                        }
+                    },
+                    maxLines = 7,
+                    label = { Text("Название") },
+                    modifier = Modifier
+                        .weight(1f)
                 )
 
                 OutlinedTextField(
                     value = faculty,
-                    onValueChange = { faculty = it },
-                    label = { Text("Факультет")}
+                    onValueChange = { newFaculty ->
+                        if (newFaculty.length <= 1000) {
+                            faculty = newFaculty
+                        }
+                    },
+                    maxLines = 7,
+                    label = { Text("Факультет") },
+                    modifier = Modifier
+                        .weight(1f)
                 )
             }
 
@@ -147,7 +163,6 @@ fun TranslationForm(
         }
     }
 }
-
 
 
 @Composable
