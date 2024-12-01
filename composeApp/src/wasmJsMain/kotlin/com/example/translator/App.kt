@@ -2,6 +2,7 @@ package com.example.translator
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -15,13 +16,15 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.text.TextStyle
+import kotlinx.browser.window
 
 private val LightThemeColors = Colors(
-    primary = Color(234, 244, 244), // основной цвет
-    primaryVariant = Color(204, 227, 222), // дополнительный акцент
-    secondary = Color(162,235,213), // акцентный цвет (для кнопок)
+    primary = Color(234, 244, 244),
+    primaryVariant = Color(204, 227, 222),
+    secondary = Color(64,186,149),
     secondaryVariant = Color(107, 144, 128),
-    background = Color(234, 244, 244), // фон приложения
+    background = Color(234, 244, 244),
     surface = Color.White,
     error = Color.Red,
     onPrimary = Color.Black,
@@ -33,11 +36,11 @@ private val LightThemeColors = Colors(
 )
 
 private val DarkThemeColors = Colors(
-    primary = Color(54, 73, 88), // основной цвет
-    primaryVariant = Color(85, 130, 139), // дополнительный акцент
-    secondary = Color(135, 187, 162), // акцентный цвет (для кнопок)
+    primary = Color(54, 73, 88),
+    primaryVariant = Color(85, 130, 139),
+    secondary = Color(135, 187, 162),
     secondaryVariant = Color(135, 187, 162),
-    background = Color(54, 73, 88), // фон приложения
+    background = Color(54, 73, 88),
     surface = Color.DarkGray,
     error = Color.Red,
     onPrimary = Color.White,
@@ -61,34 +64,79 @@ fun AppTheme(isDarkTheme: Boolean, content: @Composable () -> Unit) {
     MaterialTheme(colors = colors, content = content)
 }
 
+fun copyToClipboard(text: String) {
+    window.navigator.clipboard.writeText(text)
+}
+
 @Composable
 fun App() {
     var isDarkTheme by remember { mutableStateOf(false) }
+    var isLoggedIn by remember { mutableStateOf(false) }
+    var currentPage by remember { mutableStateOf("Login") }
 
     AppTheme(isDarkTheme = isDarkTheme) {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Переводчик") },
+                    title = {
+                        Column(
+                            Modifier.padding(16.dp)
+                        ) {
+                            if (isLoggedIn) {
+                                Text("Аккаунт", fontSize = 30.sp)
+                            } else {
+                                Text("Переводчик", fontSize = 30.sp)
+                            }
+                        }
+                    },
                     actions = {
+                        if (isLoggedIn) {
+                            IconButton(onClick = { currentPage = "Account" }, Modifier.padding(16.dp)) {
+                                Icon(
+                                    imageVector = Icons.Default.AccountCircle,
+                                    contentDescription = "Аккаунт",
+                                    tint = MaterialTheme.colors.secondary,
+                                    modifier = Modifier.size(50.dp)
+                                )
+                            }
+                        }
                         Switch(
                             checked = isDarkTheme,
                             onCheckedChange = { isDarkTheme = it }
                         )
-                    }
+                    },
+                    backgroundColor = MaterialTheme.colors.primaryVariant,
+                    contentColor = MaterialTheme.colors.onPrimary,
+                    modifier = Modifier.height(100.dp)
                 )
             }
         ) {
-            var currentPage by remember { mutableStateOf("Login") }
             when (currentPage) {
                 "Login" -> LoginPage(
-                    onLoginClick = { currentPage = "Translator" },
-                    onRegisterClick = { currentPage = "Register" }
+                    onLoginClick = {
+                        isLoggedIn = true
+                        currentPage = "Translator"
+                    },
+                    onRegisterClick = {
+                        currentPage = "Register"
+                    }
                 )
                 "Register" -> RegisterPage(
-                    onBackToLoginClick = { currentPage = "Login" }
+                    onBackToLoginClick = {
+                        currentPage = "Login"
+                    }
                 )
-                "Translator" -> TranslatorPage(onLogoutClick = { currentPage = "Login" })
+                "Translator" -> TranslatorPage(onLogoutClick = {
+                    isLoggedIn = false
+                    currentPage = "Login"
+                })
+                "Account" -> AccountPage(
+                    onExitClick = {
+                        isLoggedIn = false
+                        currentPage = "Login"
+                    },
+                    onBackClick = { currentPage = "Translator" }
+                )
             }
         }
     }
@@ -113,11 +161,21 @@ fun LoginPage(onLoginClick: () -> Unit, onRegisterClick: () -> Unit) {
                 OutlinedTextField(
                     value = login,
                     onValueChange = { newLogin -> if (newLogin.length <= 100) login = newLogin },
-                    maxLines = 1,
                     label = { Text("Логин", color = MaterialTheme.colors.onSurface) },
+                    textStyle = TextStyle(
+                        color = MaterialTheme.colors.onSurface,
+                        fontSize = 20.sp
+                    ),
+                    modifier = Modifier
+                        .width(400.dp)
+                        .padding(8.dp),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
                         focusedBorderColor = MaterialTheme.colors.secondary,
-                        unfocusedBorderColor = MaterialTheme.colors.onBackground
+                        unfocusedBorderColor = MaterialTheme.colors.onBackground,
+                        cursorColor = MaterialTheme.colors.secondary,
+                        focusedLabelColor = MaterialTheme.colors.secondary,
+                        unfocusedLabelColor = MaterialTheme.colors.onBackground,
+                        backgroundColor = Color.Transparent
                     )
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -125,7 +183,9 @@ fun LoginPage(onLoginClick: () -> Unit, onRegisterClick: () -> Unit) {
                 OutlinedTextField(
                     value = password,
                     onValueChange = { newPassword -> if (newPassword.length <= 100) password = newPassword },
-                    maxLines = 1,
+                    modifier = Modifier
+                        .width(400.dp)
+                        .padding(8.dp),
                     label = { Text("Пароль", color = MaterialTheme.colors.onSurface) },
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions.Default,
@@ -181,11 +241,21 @@ fun RegisterPage(onBackToLoginClick: () -> Unit) {
                 OutlinedTextField(
                     value = email,
                     onValueChange = { newEmail -> if (newEmail.length <= 100) email = newEmail },
-                    maxLines = 1,
+                    modifier = Modifier
+                        .width(400.dp)
+                        .padding(8.dp),
                     label = { Text("Почта", color = MaterialTheme.colors.onSurface) },
+                    textStyle = TextStyle(
+                        color = MaterialTheme.colors.onSurface,
+                        fontSize = 20.sp
+                    ),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
                         focusedBorderColor = MaterialTheme.colors.secondary,
-                        unfocusedBorderColor = MaterialTheme.colors.onBackground
+                        unfocusedBorderColor = MaterialTheme.colors.onBackground,
+                        cursorColor = MaterialTheme.colors.secondary,
+                        focusedLabelColor = MaterialTheme.colors.secondary,
+                        unfocusedLabelColor = MaterialTheme.colors.onBackground,
+                        backgroundColor = Color.Transparent
                     )
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -193,11 +263,21 @@ fun RegisterPage(onBackToLoginClick: () -> Unit) {
                 OutlinedTextField(
                     value = username,
                     onValueChange = { newUsername -> if (newUsername.length <= 100) username = newUsername },
-                    maxLines = 1,
+                    modifier = Modifier
+                        .width(400.dp)
+                        .padding(8.dp),
                     label = { Text("Логин", color = MaterialTheme.colors.onSurface) },
+                    textStyle = TextStyle(
+                        color = MaterialTheme.colors.onSurface,
+                        fontSize = 20.sp
+                    ),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
                         focusedBorderColor = MaterialTheme.colors.secondary,
-                        unfocusedBorderColor = MaterialTheme.colors.onBackground
+                        unfocusedBorderColor = MaterialTheme.colors.onBackground,
+                        cursorColor = MaterialTheme.colors.secondary,
+                        focusedLabelColor = MaterialTheme.colors.secondary,
+                        unfocusedLabelColor = MaterialTheme.colors.onBackground,
+                        backgroundColor = Color.Transparent
                     )
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -205,7 +285,9 @@ fun RegisterPage(onBackToLoginClick: () -> Unit) {
                 OutlinedTextField(
                     value = password,
                     onValueChange = { newPassword -> if (newPassword.length <= 100) password = newPassword },
-                    maxLines = 1,
+                    modifier = Modifier
+                        .width(400.dp)
+                        .padding(8.dp),
                     label = { Text("Пароль", color = MaterialTheme.colors.onSurface) },
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions.Default,
@@ -219,7 +301,9 @@ fun RegisterPage(onBackToLoginClick: () -> Unit) {
                 OutlinedTextField(
                     value = confirmPassword,
                     onValueChange = { newConfirmPassword -> if (newConfirmPassword.length <= 100) confirmPassword = newConfirmPassword },
-                    maxLines = 1,
+                    modifier = Modifier
+                        .width(400.dp)
+                        .padding(8.dp),
                     label = { Text("Повторите пароль", color = MaterialTheme.colors.onSurface) },
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions.Default,
@@ -255,17 +339,6 @@ fun TranslatorPage(onLogoutClick: () -> Unit) {
 
     MaterialTheme {
         Column(modifier = Modifier.fillMaxSize()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colors.primaryVariant)
-                    .padding(16.dp)
-            )  {
-                Spacer(modifier = Modifier.width(200.dp))
-
-                Header( onAccountClick = { selectedPage = "Account" } )
-            }
-
             Row(modifier = Modifier.fillMaxSize()) {
                 Column(
                     modifier = Modifier
@@ -327,9 +400,9 @@ fun TranslatorPage(onLogoutClick: () -> Unit) {
                             }
                         )
                         "Account" -> AccountPage(
-                            onExitClick = { selectedPage = "Login" }
+                            onExitClick = onLogoutClick,
+                            onBackClick = { selectedPage = "Home" }
                         )
-                        "Login" -> onLogoutClick()
                     }
                 }
             }
@@ -339,51 +412,34 @@ fun TranslatorPage(onLogoutClick: () -> Unit) {
     AboutUsDialog(isVisible = isAboutVisible, onDismiss = { isAboutVisible = false })
 }
 
-
 @Composable
-fun Header(onAccountClick: () -> Unit) {
-    MaterialTheme {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Переводчик", style = MaterialTheme.typography.h4)
-
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                IconButton(
-                    onClick = onAccountClick
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.AccountCircle,
-                        contentDescription = "Аккаунт",
-                        tint = MaterialTheme.colors.secondary,
-                        modifier = Modifier.size(50.dp)
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun AccountPage(onExitClick: () -> Unit) {
+fun AccountPage(onExitClick: () -> Unit, onBackClick: () -> Unit) {
     MaterialTheme {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Text("Страница аккаунта", modifier = Modifier.fillMaxWidth(), style = MaterialTheme.typography.h5)
-
             Button(
                 onClick = onExitClick,
                 modifier = Modifier.padding(bottom = 16.dp),
                 colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary)
             ) {
                 Text("Выйти", color = MaterialTheme.colors.onPrimary)
+            }
+
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    onClick = onBackClick,
+                    modifier = Modifier.padding(bottom = 16.dp),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary)
+                ) {
+                    Text("Назад", color = MaterialTheme.colors.onPrimary)
+                }
             }
         }
     }
@@ -422,13 +478,9 @@ fun AboutUsDialog(isVisible: Boolean, onDismiss: () -> Unit) {
 }
 
 @Composable
-fun TranslationForm(
-    onTranslate: (String, String, String) -> Unit,
-    result: String,
-    initialName: String = "",
-    initialFaculty: String = "",
-    initialDirection: String = ""
-) {
+fun TranslationForm(onTranslate: (String, String, String) -> Unit, result: String, initialName: String = "",
+                    initialFaculty: String = "", initialDirection: String = "") {
+
     var name by remember { mutableStateOf(initialName) }
     var faculty by remember { mutableStateOf(initialFaculty) }
     var direction by remember { mutableStateOf(initialDirection) }
@@ -449,36 +501,57 @@ fun TranslationForm(
                 OutlinedTextField(
                     value = name,
                     onValueChange = { newName -> if (newName.length <= 1000) name = newName },
-                    maxLines = 7,
                     label = { Text("Название", color = MaterialTheme.colors.onSurface) },
                     modifier = Modifier.weight(1f),
+                    textStyle = TextStyle(
+                        color = MaterialTheme.colors.onSurface,
+                        fontSize = 20.sp
+                    ),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
                         focusedBorderColor = MaterialTheme.colors.secondary,
-                        unfocusedBorderColor = MaterialTheme.colors.onBackground
+                        unfocusedBorderColor = MaterialTheme.colors.onBackground,
+                        cursorColor = MaterialTheme.colors.secondary,
+                        focusedLabelColor = MaterialTheme.colors.secondary,
+                        unfocusedLabelColor = MaterialTheme.colors.onBackground,
+                        backgroundColor = Color.Transparent
                     )
                 )
 
                 OutlinedTextField(
                     value = faculty,
                     onValueChange = { newFaculty -> if (newFaculty.length <= 1000) faculty = newFaculty },
-                    maxLines = 7,
                     label = { Text("Факультет", color = MaterialTheme.colors.onSurface) },
                     modifier = Modifier.weight(1f),
+                    textStyle = TextStyle(
+                        color = MaterialTheme.colors.onSurface,
+                        fontSize = 20.sp
+                    ),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
                         focusedBorderColor = MaterialTheme.colors.secondary,
-                        unfocusedBorderColor = MaterialTheme.colors.onBackground
+                        unfocusedBorderColor = MaterialTheme.colors.onBackground,
+                        cursorColor = MaterialTheme.colors.secondary,
+                        focusedLabelColor = MaterialTheme.colors.secondary,
+                        unfocusedLabelColor = MaterialTheme.colors.onBackground,
+                        backgroundColor = Color.Transparent
                     )
                 )
 
                 OutlinedTextField(
                     value = direction,
                     onValueChange = { newDirection -> if (newDirection.length <= 1000) direction = newDirection },
-                    maxLines = 7,
                     label = { Text("Направление", color = MaterialTheme.colors.onSurface) },
                     modifier = Modifier.weight(1f),
+                    textStyle = TextStyle(
+                        color = MaterialTheme.colors.onSurface,
+                        fontSize = 20.sp
+                    ),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
                         focusedBorderColor = MaterialTheme.colors.secondary,
-                        unfocusedBorderColor = MaterialTheme.colors.onBackground
+                        unfocusedBorderColor = MaterialTheme.colors.onBackground,
+                        cursorColor = MaterialTheme.colors.secondary,
+                        focusedLabelColor = MaterialTheme.colors.secondary,
+                        unfocusedLabelColor = MaterialTheme.colors.onBackground,
+                        backgroundColor = Color.Transparent
                     )
                 )
             }
@@ -493,22 +566,46 @@ fun TranslationForm(
                 Text("Перевести", color = MaterialTheme.colors.onPrimary)
             }
 
-            Text(
-                text = "Результат перевода: $result",
-                style = MaterialTheme.typography.body1,
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp)
-                    .padding(top = 16.dp)
-            )
+                    .padding(16.dp)
+            ) {
+                Text("Перевод", style = MaterialTheme.typography.h6)
+
+                OutlinedTextField(
+                    value = result,
+                    onValueChange = {},
+                    readOnly = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = MaterialTheme.colors.secondary,
+                        unfocusedBorderColor = MaterialTheme.colors.onBackground,
+                        disabledBorderColor = MaterialTheme.colors.onBackground,
+                        backgroundColor = Color.Transparent
+                    )
+                )
+            }
+
+            Button(
+                onClick = {
+                    copyToClipboard(result)
+                },
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(top = 8.dp),
+                colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary)
+            ) {
+                Text("Скопировать результат", color = MaterialTheme.colors.onPrimary)
+            }
         }
     }
 }
 
 @Composable
-fun HistoryPage(
-    history: List<TranslationHistoryItem>,
-    onItemClick: (TranslationHistoryItem) -> Unit
+fun HistoryPage(history: List<TranslationHistoryItem>, onItemClick: (TranslationHistoryItem) -> Unit
 ) {
     MaterialTheme {
         Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
@@ -521,15 +618,8 @@ fun HistoryPage(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                     colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent)
                 ) {
-                    // при длинных, он криво рисует
                     Column(Modifier.padding(8.dp)) {
                         Text("Перевод: ${item.translation}", style = MaterialTheme.typography.body1)
-
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Название: ${item.name}", style = MaterialTheme.typography.body2)
-                            Text("Факультет: ${item.faculty}", style = MaterialTheme.typography.body2)
-                            Text("Направление: ${item.direction}", style = MaterialTheme.typography.body2)
-                        }
                     }
                 }
             }
