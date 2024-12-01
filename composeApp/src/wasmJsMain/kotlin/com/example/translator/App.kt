@@ -78,8 +78,11 @@ fun LoginPage(onLoginClick: () -> Unit, onRegisterClick: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                TextButton(onClick = onRegisterClick, Modifier.padding(8.dp)) {
-                    Text("Регистрация", color = MaterialTheme.colors.primary)
+                TextButton(
+                    onClick = onRegisterClick,
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text("Регистрация", color = Color.Black)
                 }
 
                 Button(
