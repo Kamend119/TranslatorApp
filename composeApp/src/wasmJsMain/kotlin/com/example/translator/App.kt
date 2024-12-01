@@ -2,7 +2,6 @@ package com.example.translator
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -79,14 +78,11 @@ fun App() {
             topBar = {
                 TopAppBar(
                     title = {
-                        Column(
-                            Modifier.padding(16.dp)
-                        ) {
-                            if (isLoggedIn) {
-                                Text("Аккаунт", fontSize = 30.sp)
-                            } else {
-                                Text("Переводчик", fontSize = 30.sp)
-                            }
+                        when(currentPage){
+                            "Login" -> Text("Переводчик", fontSize = 30.sp)
+                            "Register" -> Text("Регистрация", fontSize = 30.sp)
+                            "Translator" -> Text("Главная", fontSize = 30.sp, modifier = Modifier.padding(start = 200.dp))
+                            "Account" -> Text("Аккаунт", fontSize = 30.sp)
                         }
                     },
                     actions = {
@@ -414,19 +410,58 @@ fun TranslatorPage(onLogoutClick: () -> Unit) {
 
 @Composable
 fun AccountPage(onExitClick: () -> Unit, onBackClick: () -> Unit) {
+    val email = "example@example.com"
+    val username = "username"
+
     MaterialTheme {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Button(
-                onClick = onExitClick,
-                modifier = Modifier.padding(bottom = 16.dp),
-                colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary)
-            ) {
-                Text("Выйти", color = MaterialTheme.colors.onPrimary)
-            }
+            OutlinedTextField(
+                value = email,
+                onValueChange = {},
+                label = { Text("Почта") },
+                readOnly = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                textStyle = TextStyle(
+                    color = MaterialTheme.colors.onSurface,
+                    fontSize = 20.sp
+                ),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = MaterialTheme.colors.secondary,
+                    unfocusedBorderColor = MaterialTheme.colors.onBackground,
+                    cursorColor = MaterialTheme.colors.secondary,
+                    focusedLabelColor = MaterialTheme.colors.secondary,
+                    unfocusedLabelColor = MaterialTheme.colors.onBackground,
+                    backgroundColor = Color.Transparent
+                )
+            )
+
+            OutlinedTextField(
+                value = username,
+                onValueChange = {},
+                label = { Text("Логин") },
+                readOnly = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                textStyle = TextStyle(
+                    color = MaterialTheme.colors.onSurface,
+                    fontSize = 20.sp
+                ),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = MaterialTheme.colors.secondary,
+                    unfocusedBorderColor = MaterialTheme.colors.onBackground,
+                    cursorColor = MaterialTheme.colors.secondary,
+                    focusedLabelColor = MaterialTheme.colors.secondary,
+                    unfocusedLabelColor = MaterialTheme.colors.onBackground,
+                    backgroundColor = Color.Transparent
+                )
+            )
 
             Row(
                 Modifier.fillMaxWidth(),
@@ -434,8 +469,16 @@ fun AccountPage(onExitClick: () -> Unit, onBackClick: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Button(
+                    onClick = onExitClick,
+                    modifier = Modifier.padding(16.dp),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary)
+                ) {
+                    Text("Выйти", color = MaterialTheme.colors.onPrimary)
+                }
+
+                Button(
                     onClick = onBackClick,
-                    modifier = Modifier.padding(bottom = 16.dp),
+                    modifier = Modifier.padding(16.dp),
                     colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary)
                 ) {
                     Text("Назад", color = MaterialTheme.colors.onPrimary)
